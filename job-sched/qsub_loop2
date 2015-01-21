@@ -1,0 +1,137 @@
+#!/bin/bash
+#PBS -N ARK_CO2CH4N2_screen
+#PBS -o ARK_CO2CH4N2_screen.out
+#PBS -e ARK_CO2CH4N2_screen.err
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=96:00:00
+#PBS -q shared
+
+cd $PBS_O_WORKDIR
+export RASPA_DIR="/home/cwilmer/ark111/RASPA-2.0-CF"
+
+echo START: `date`
+
+	START_FILE=$INITIAL
+	NUM_FILES=$TOTAL
+	#FILE_NAME=$NAME
+	#FILE_LIST=$FILELIST
+
+	#cp co2sim ~/tmp/co2sim_$INITIAL
+	#cp ch4sim ~/tmp/ch4sim_$INITIAL
+	#cp n2sim ~/tmp/n2sim_$INITIAL
+
+	for ((i = START_FILE; i < NUM_FILES + START_FILE; i++))
+	do
+		cp co2sim ~/tmp/co2sim_$i
+		cp ch4sim ~/tmp/ch4sim_$i
+		cp n2sim ~/tmp/n2sim_$i
+	
+		MAT_NAME="MAT-$i"
+	
+	#co2 simulation	
+		sed -i "s/^Forcefield.*/Forcefield                    $MAT_NAME/" ~/tmp/co2sim_$i
+		sed -i "s/^FrameworkName.*/FrameworkName $MAT_NAME/" ~/tmp/co2sim_$i
+		$RASPA_DIR/src/simulate -i ~/tmp/co2sim_$i
+		rm ~/tmp/co2sim_$i
+
+	#co2 data
+	#excess
+		#cm3/gr
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading excess.*(STP)/gr" | awk '{print $7"\t"$9}')
+		echo $MAT_NAME"   "$VALUE >> co2_exc_cc_gr.txt
+		#cm3/cm3
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading excess.*(STP)/cm" | awk '{print $7"\t"$9}')
+		echo $MAT_NAME"   "$VALUE >> co2_exc_cc_cc.txt
+		#mol/kg
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading excess.*mol.*kg" | awk '{print $6"\t"$8}')
+		echo $MAT_NAME"   "$VALUE >> co2_exc_mol_kg.txt
+	#absolute
+		#cm3/gr
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading abs.*(STP)/gr" | awk '{print $7"\t"$9}')
+		echo $MAT_NAME"   "$VALUE >> co2_abs_cc_gr.txt
+		#cm3/cm3
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading abs.*(STP)/cm" | awk '{print $7"\t"$9}')
+		echo $MAT_NAME"   "$VALUE >> co2_abs_cc_cc.txt
+		#mol/kg
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading abs.*mol.*kg" | awk '{print $6"\t"$8}')
+		echo $MAT_NAME"   "$VALUE >> co2_abs_mol_kg.txt
+	#system data
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep desorption: -A 9 | grep KJ/MOL | awk '{print $1"\t"$3}')
+		echo $MAT_NAME"   "$VALUE >> co2_heatDesorpTotal.txt
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep desor.*Host-Adsorbate -A 9 | grep KJ/MOL | awk '{print $1"\t"$3}')
+		echo $MAT_NAME"   "$VALUE >> co2_heatDesorpHostAds.txt
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep desor.*Ads.*-Ads -A 9 | grep KJ/MOL | awk '{print $1"\t"$3}')
+		echo $MAT_NAME"   "$VALUE >> co2_heatDesorpAdsAds.txt
+
+		#ch4 simulation
+	
+		sed -i "s/^Forcefield.*/Forcefield                    $MAT_NAME/" ~/tmp/ch4sim_$i
+		sed -i "s/^FrameworkName.*/FrameworkName $MAT_NAME/" ~/tmp/ch4sim_$i
+		$RASPA_DIR/src/simulate -i ~/tmp/ch4sim_$i
+		rm ~/tmp/ch4sim_$i
+
+	#ch4 data
+	#excess
+		#cm3/gr
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading excess.*(STP)/gr" | awk '{print $7"\t"$9}')
+		echo $MAT_NAME"   "$VALUE >> ch4_exc_cc_gr.txt
+		#cm3/cm3
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading excess.*(STP)/cm" | awk '{print $7"\t"$9}')
+		echo $MAT_NAME"   "$VALUE >> ch4_exc_cc_cc.txt
+		#mol/kg
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading excess.*mol.*kg" | awk '{print $6"\t"$8}')
+		echo $MAT_NAME"   "$VALUE >> ch4_exc_mol_kg.txt
+	#absolute
+		#cm3/gr
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading abs.*(STP)/gr" | awk '{print $7"\t"$9}')
+		echo $MAT_NAME"   "$VALUE >> ch4_abs_cc_gr.txt
+		#cm3/cm3
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading abs.*(STP)/cm" | awk '{print $7"\t"$9}')
+		echo $MAT_NAME"   "$VALUE >> ch4_abs_cc_cc.txt
+		#mol/kg
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading abs.*mol.*kg" | awk '{print $6"\t"$8}')
+		echo $MAT_NAME"   "$VALUE >> ch4_abs_mol_kg.txt
+	#system data
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep desorption: -A 9 | grep KJ/MOL | awk '{print $1"\t"$3}')
+		echo $MAT_NAME"   "$VALUE >> ch4_heatDesorpTotal.txt
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep desor.*Host-Adsorbate -A 9 | grep KJ/MOL | awk '{print $1"\t"$3}')
+		echo $MAT_NAME"   "$VALUE >> ch4_heatDesorpHostAds.txt
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep desor.*Ads.*-Ads -A 9 | grep KJ/MOL | awk '{print $1"\t"$3}')
+		echo $MAT_NAME"   "$VALUE >> ch4_heatDesorpAdsAds.txt
+
+	#n2 simulation	
+		sed -i "s/^Forcefield.*/Forcefield                    $MAT_NAME/" ~/tmp/n2sim_$i
+		sed -i "s/^FrameworkName.*/FrameworkName $MAT_NAME/" ~/tmp/n2sim_$i
+		$RASPA_DIR/src/simulate -i ~/tmp/n2sim_$i
+		rm ~/tmp/n2sim_$i
+
+	#n2 data
+	#excess
+		#cm3/gr
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading excess.*(STP)/gr" | awk '{print $7"\t"$9}')
+		echo $MAT_NAME"   "$VALUE >> n2_exc_cc_gr.txt
+		#cm3/cm3
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading excess.*(STP)/cm" | awk '{print $7"\t"$9}')
+		echo $MAT_NAME"   "$VALUE >> n2_exc_cc_cc.txt
+		#mol/kg
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading excess.*mol.*kg" | awk '{print $6"\t"$8}')
+		echo $MAT_NAME"   "$VALUE >> n2_exc_mol_kg.txt
+	#absolute
+		#cm3/gr
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading abs.*(STP)/gr" | awk '{print $7"\t"$9}')
+		echo $MAT_NAME"   "$VALUE >> n2_abs_cc_gr.txt
+		#cm3/cm3
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading abs.*(STP)/cm" | awk '{print $7"\t"$9}')
+		echo $MAT_NAME"   "$VALUE >> n2_abs_cc_cc.txt
+		#mol/kg
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep "Average loading abs.*mol.*kg" | awk '{print $6"\t"$8}')
+		echo $MAT_NAME"   "$VALUE >> n2_abs_mol_kg.txt
+	#system data
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep desorption: -A 9 | grep KJ/MOL | awk '{print $1"\t"$3}')
+		echo $MAT_NAME"   "$VALUE >> n2_heatDesorpTotal.txt
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep desor.*Host-Adsorbate -A 9 | grep KJ/MOL | awk '{print $1"\t"$3}')
+		echo $MAT_NAME"   "$VALUE >> n2_heatDesorpHostAds.txt
+		VALUE=$(cat Output/System_0/output_"$MAT_NAME"_* | grep desor.*Ads.*-Ads -A 9 | grep KJ/MOL | awk '{print $1"\t"$3}')
+		echo $MAT_NAME"   "$VALUE >> n2_heatDesorpAdsAds.txt
+
+	done
