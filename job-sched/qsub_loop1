@@ -1,0 +1,46 @@
+#!/bin/bash
+#PBS -N ARK_CO2CH4N2_screen
+#PBS -o ARK_CO2CH4N2_screen.out
+#PBS -e ARK_CO2CH4N2_screen.err
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=96:00:00
+#PBS -q shared
+
+cd $PBS_O_WORKDIR
+export RASPA_DIR="/home/cwilmer/ark111/RASPA-2.0-CF"
+
+echo START: `date`
+
+	START_FILE=$INITIAL
+	NUM_FILES=$TOTAL
+	#FILE_NAME=$NAME
+	#FILE_LIST=$FILELIST
+
+	#cp co2sim ~/tmp/co2sim_$INITIAL
+	#cp ch4sim ~/tmp/ch4sim_$INITIAL
+	#cp n2sim ~/tmp/n2sim_$INITIAL
+
+	for ((i = START_FILE; i < NUM_FILES + START_FILE; i++))
+	do
+		cp co2sim ~/tmp/co2sim_$i
+		cp ch4sim ~/tmp/ch4sim_$i
+		cp n2sim ~/tmp/n2sim_$i
+	
+		MAT_NAME="MAT-$i"
+	
+		#co2 simulation
+		sed -i "s/^FrameworkName.*/FrameworkName $MAT_NAME/" ~/tmp/co2sim_$i
+		$RASPA_DIR/src/simulate -i ~/tmp/co2sim_$i
+		rm ~/tmp/co2sim_$i
+
+		#ch4 simulation
+		sed -i "s/^FrameworkName.*/FrameworkName $MAT_NAME/" ~/tmp/ch4sim_$i
+		$RASPA_DIR/src/simulate -i ~/tmp/ch4sim_$i
+		rm ~/tmp/ch4sim_$i
+
+		#co2 simulation
+		sed -i "s/^FrameworkName.*/FrameworkName $MAT_NAME/" ~/tmp/n2sim_$i
+		$RASPA_DIR/src/simulate -i ~/tmp/n2sim_$i
+		rm ~/tmp/n2sim_$i
+
+	done
